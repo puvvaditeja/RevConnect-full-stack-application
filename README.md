@@ -1,4 +1,4 @@
-REVCONNECT
+**REVCONNECT**
 
 
 > **RevConnect** is a full-stack social media platform built with Spring Boot — designed for three distinct account types: 
