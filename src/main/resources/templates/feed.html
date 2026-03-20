@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- TOP BAR -->
 <nav class="topbar">
     <a class="topbar-brand" th:href="@{/feed(userId=${userId})}">RevConnect</a>
 
@@ -32,13 +31,10 @@
     </div>
 </nav>
 
-<!-- MAIN LAYOUT -->
 <div class="layout">
 
-    <!-- ===== LEFT SIDEBAR ===== -->
     <aside class="sidebar">
 
-        <!-- Profile Summary Card -->
         <div class="card" th:if="${profile != null}">
             <div class="sidebar-profile">
                 <div class="avatar"
@@ -71,7 +67,6 @@
             </div>
         </div>
 
-        <!-- Navigation Card -->
         <div class="card">
             <nav class="nav-menu">
                 <a class="nav-item active" th:href="@{/feed(userId=${userId})}">
@@ -96,13 +91,15 @@
                 <a class="nav-item" th:href="@{/follow/following(userId=${userId})}">
                     <span class="nav-icon">➕</span> Following
                 </a>
+                <a class="nav-item" th:href="@{/mvc/connections(userId=${userId})}">
+                    <span class="nav-icon">🔗</span> Connections
+                </a>
                 <a class="nav-item" th:href="@{/users/search(userId=${userId})}">
                     <span class="nav-icon">🔍</span> Find People
                 </a>
             </nav>
         </div>
 
-        <!-- Trending hashtags (if present) -->
         <div class="card" th:if="${trendingHashtags != null and !trendingHashtags.isEmpty()}">
             <div class="card-header">🔥 Trending</div>
             <div th:each="tag : ${trendingHashtags}">
@@ -116,31 +113,24 @@
 
     </aside>
 
-    <!-- ===== FEED COLUMN ===== -->
     <main class="feed-column">
 
-        <!-- Flash messages -->
         <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
         <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
-        <!-- Search result header -->
-        <div class="alert alert-info"
-             th:if="${searchKeyword != null}">
+        <div class="alert alert-info" th:if="${searchKeyword != null}">
             Showing results for: <strong th:text="${searchKeyword}"></strong>
         </div>
 
-        <!-- Create post shortcut -->
         <div class="card create-post-card">
             <div class="avatar"
                  th:if="${profile != null and (profile.profilePic == null or profile.profilePic.isEmpty())}"
                  th:text="${profile != null and profile.userName != null ? profile.userName.substring(0,1) : 'U'}">U</div>
-            <a class="create-post-input"
-               th:href="@{/posts/create(userId=${userId})}">
+            <a class="create-post-input" th:href="@{/posts/create(userId=${userId})}">
                 What's on your mind?
             </a>
         </div>
 
-        <!-- ===== POST FEED FRAGMENT: th:each iterates over posts ===== -->
         <div th:fragment="postFeed" id="post-feed">
             <div th:if="${posts == null or posts.isEmpty()}" class="card">
                 <div class="empty-state">
@@ -151,10 +141,8 @@
                 </div>
             </div>
 
-            <!-- Loop over posts -->
             <div class="post-card" th:each="post : ${posts}" th:id="'post-' + ${post.postId}">
 
-                <!-- Post Header -->
                 <div class="post-header">
                     <div class="avatar-sm" th:text="${post.userName != null ? post.userName.substring(0,1) : 'U'}">U</div>
                     <div class="post-header-info">
@@ -162,52 +150,40 @@
                         <div class="post-time"
                              th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'MMM d, yyyy · h:mm a') : ''}"></div>
                     </div>
-                    <!-- Pin badge -->
-                    <span class="pinned-badge"
-                          th:if="${false}">📌 Pinned</span>
+                    <span class="pinned-badge" th:if="${false}">📌 Pinned</span>
                 </div>
 
-                <!-- Post Body -->
                 <div class="post-body">
-                    <!-- Shared indicator -->
                     <div class="shared-badge" th:if="${post.shared}">
                         🔁 Shared post
                         <a th:if="${post.originalPostId != null}"
                            th:href="@{/posts/{id}(id=${post.originalPostId}, userId=${userId})}"
                            style="font-size:12px;">View original</a>
                     </div>
-
-                    <!-- Image -->
                     <img class="post-image"
                          th:if="${post.imageUrl != null and !post.imageUrl.isEmpty()}"
-                         th:src="${post.imageUrl}"
-                         th:alt="${post.content}"/>
-
-                    <!-- Content -->
+                         th:src="${post.imageUrl}" th:alt="${post.content}"/>
                     <p class="post-content" th:text="${post.content}">Post content here.</p>
-
-                    <!-- Hashtag -->
-                    <a class="post-hashtag"
-                       th:if="${post.hashtag != null and !post.hashtag.isEmpty()}"
-                       th:href="@{/feed/search(keyword=${post.hashtag}, userId=${userId})}"
-                       th:text="${post.hashtag}">#hashtag</a>
+                    <!-- CTA Button — shows only if set -->
+<div th:if="${post.ctaLabel != null and !post.ctaLabel.isEmpty()}"
+     style="margin-top:12px;">
+    <a th:href="${post.ctaLink}"
+       th:text="${post.ctaLabel}"
+       target="_blank"
+       class="btn btn-primary btn-sm">
+    </a>
+</div>
                 </div>
 
-                <!-- Post Actions -->
                 <div class="post-actions">
-
-                    <!-- LIKE BUTTON (CSS-only animation via checkbox + label trick) -->
                     <div class="like-btn-wrapper">
                         <input type="checkbox" class="like-checkbox"
                                th:id="'like-chk-' + ${post.postId}"/>
                         <label class="like-label" th:for="'like-chk-' + ${post.postId}"
                                th:onclick="'document.getElementById(\'like-form-\' + ' + ${post.postId} + ').submit()'">
-                            <span class="heart">❤️</span>
-                            Like
+                            <span class="heart">❤️</span> Like
                         </label>
                     </div>
-
-                    <!-- Hidden like form (actual form POST) -->
                     <form th:id="'like-form-' + ${post.postId}"
                           th:action="@{/posts/{id}/like(id=${post.postId})}" method="post"
                           style="display:none;">
@@ -215,28 +191,22 @@
                         <input type="hidden" name="redirectTo" th:value="@{/feed(userId=${userId})}"/>
                     </form>
 
-                    <!-- Comment -->
                     <a class="action-btn"
                        th:href="@{/posts/{id}(id=${post.postId}, userId=${userId})}">
                         💬 Comment
                     </a>
 
-                    <!-- Share -->
-                  
-                    
                     <a class="action-btn"
-   th:href="@{/posts/{id}/share-sheet(id=${post.postId},userId=${userId})}">
-    ↗️ Share
-</a>
+                       th:href="@{/posts/{id}/share-sheet(id=${post.postId},userId=${userId})}">
+                        ↗️ Share
+                    </a>
 
-                    <!-- Save -->
                     <form th:action="@{/posts/{id}/save(id=${post.postId})}" method="post"
                           style="display:inline;">
                         <input type="hidden" name="userId" th:value="${userId}"/>
                         <button type="submit" class="action-btn">🔖 Save</button>
                     </form>
 
-                    <!-- View -->
                     <a class="action-btn"
                        th:href="@{/posts/{id}(id=${post.postId}, userId=${userId})}">
                         👁 View
@@ -244,23 +214,18 @@
                 </div>
 
             </div>
-            <!-- End th:each loop -->
         </div>
-        <!-- End postFeed fragment -->
 
-        <!-- Pagination -->
         <div class="pagination" th:if="${totalPages != null and totalPages > 1}">
             <a class="page-btn"
                th:href="@{/feed(userId=${userId}, page=${currentPage - 1})}"
                th:classappend="${currentPage == 0} ? 'disabled' : ''">← Prev</a>
-
             <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                 <a class="page-btn"
                    th:href="@{/feed(userId=${userId}, page=${i})}"
                    th:classappend="${i == currentPage} ? 'active' : ''"
                    th:text="${i + 1}">1</a>
             </span>
-
             <a class="page-btn"
                th:href="@{/feed(userId=${userId}, page=${currentPage + 1})}"
                th:classappend="${currentPage + 1 >= totalPages} ? 'disabled' : ''">Next →</a>
@@ -268,10 +233,8 @@
 
     </main>
 
-    <!-- ===== RIGHT SIDEBAR: Suggested Friends ===== -->
     <aside class="right-sidebar">
 
-        <!-- Suggested Friends card -->
         <div class="card suggested-card"
              th:if="${suggestedFriends != null and !suggestedFriends.isEmpty()}">
             <div class="card-header">People You May Know</div>
@@ -292,11 +255,9 @@
             </div>
         </div>
 
-        <!-- Trending hashtags right sidebar -->
         <div class="card">
             <div class="card-header">🔥 Trending Topics</div>
             <div class="card-body" style="padding:8px 0;">
-                <!-- Static sample trending topics (dynamic would come from trendingHashtags model attr) -->
                 <a class="trending-tag"
                    th:href="@{/feed/search(keyword='#tech', userId=${userId})}">
                     <span class="tag-name">#tech</span>
@@ -315,7 +276,6 @@
             </div>
         </div>
 
-        <!-- Footer links -->
         <div style="padding:8px;font-size:12px;color:var(--text-muted);line-height:2;">
             <a href="#" style="color:var(--text-muted);margin-right:10px;">Privacy</a>
             <a href="#" style="color:var(--text-muted);margin-right:10px;">Terms</a>
@@ -325,16 +285,15 @@
 
     </aside>
 
-</div><!-- end .layout -->
+</div>
 
 <script>
-    // Animate like button via CSS class on click
     document.querySelectorAll('.like-label').forEach(label => {
         label.addEventListener('click', function () {
             const heart = this.querySelector('.heart');
             if (heart) {
                 heart.style.animation = 'none';
-                heart.offsetHeight; // reflow
+                heart.offsetHeight;
                 heart.style.animation = '';
             }
         });

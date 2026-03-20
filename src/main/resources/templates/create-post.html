@@ -25,6 +25,7 @@
             <form th:action="@{/posts/create}" method="post">
                 <input type="hidden" name="userId" th:value="${userId}"/>
 
+                <!-- Content -->
                 <div class="form-group">
                     <label class="form-label" for="content">What's on your mind?</label>
                     <textarea class="form-control" id="content" name="content"
@@ -32,62 +33,70 @@
                               required></textarea>
                 </div>
 
+                <!-- Hashtag -->
                 <div class="form-group">
                     <label class="form-label" for="hashtag">Hashtag</label>
                     <input class="form-control" type="text" id="hashtag" name="hashtag"
                            placeholder="#topic"/>
                 </div>
 
+                <!-- Image URL -->
                 <div class="form-group">
                     <label class="form-label" for="imageUrl">Image URL (optional)</label>
                     <input class="form-control" type="url" id="imageUrl" name="imageUrl"
                            placeholder="https://example.com/image.jpg"/>
                 </div>
 
+                <!-- Schedule -->
                 <div class="form-group">
                     <label class="form-label" for="scheduledAt">Schedule Post (optional)</label>
                     <input class="form-control" type="datetime-local" id="scheduledAt" name="scheduledAt"/>
                 </div>
 
-                <!-- Business/Creator only: CTA and Product fields -->
-                <div th:if="${accountType == 'BUSINESS'}">
-                <details style="margin-bottom:16px;">
-                    <summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--text-secondary);">
-                        ⚡ Advanced Options (Business / Creator accounts)
-                    </summary>
-                    <div style="margin-top:14px;">
-                        <div class="form-group">
-                            <label class="form-label" for="ctaLabel">CTA Button Label</label>
-                            <input class="form-control" type="text" id="ctaLabel" name="ctaLabel"
-                                   placeholder="e.g. Shop Now"/>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="ctaLink">CTA Button URL</label>
-                            <input class="form-control" type="url" id="ctaLink" name="ctaLink"
-                                   placeholder="https://yourstore.com"/>
-                        </div>
-	                        <div th:if="${accountType == 'BUSINESS'}">
-	                        	<div class="form-group">
-		                            <label class="form-label" for="productName">Product Name</label>
-		                            <input class="form-control" type="text" id="productName" name="productName"
-		                                   placeholder="Product name"/>
-	                       		</div>
-	                        <div class="form-group">
-	                            <label class="form-label" for="productLink">Product Link</label>
-	                            <input class="form-control" type="url" id="productLink" name="productLink"
-	                                   placeholder="https://product-url.com"/>
-	                        </div>
-                        
-                        </div>
+                <!-- CREATOR and BUSINESS: Advanced Options -->
+                <div th:if="${accountType == 'CREATOR' or accountType == 'BUSINESS'}">
+                    <details style="margin-bottom:16px;">
+                        <summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--text-secondary);">
+                            ⚡ Advanced Options
+                        </summary>
+                        <div style="margin-top:14px;">
 
-                    </div>
-                </details>
+                            <!-- CTA — both CREATOR and BUSINESS -->
+                            <div class="form-group">
+                                <label class="form-label" for="ctaLabel">Action Button Text</label>
+                                <input class="form-control" type="text" id="ctaLabel" name="ctaLabel"
+                                       placeholder="e.g. Watch Now, Learn More, Shop Now"/>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ctaLink">Action Button Link</label>
+                                <input class="form-control" type="url" id="ctaLink" name="ctaLink"
+                                       placeholder="https://yoursite.com"/>
+                            </div>
+
+                            <!-- Product fields — BUSINESS only -->
+                            <div th:if="${accountType == 'BUSINESS'}">
+                                <div class="form-group">
+                                    <label class="form-label" for="productName">Product Name</label>
+                                    <input class="form-control" type="text" id="productName" name="productName"
+                                           placeholder="Enter your product name"/>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="productLink">Product Link</label>
+                                    <input class="form-control" type="url" id="productLink" name="productLink"
+                                           placeholder="https://your-product-url.com"/>
+                                </div>
+                            </div>
+
+                        </div>
+                    </details>
                 </div>
 
-                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                <!-- Buttons — always visible ✅ -->
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
                     <a class="btn btn-outline" th:href="@{/feed(userId=${userId})}">Cancel</a>
                     <button class="btn btn-primary" type="submit">Publish Post</button>
                 </div>
+
             </form>
         </div>
     </div>

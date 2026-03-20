@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- TOP BAR -->
 <nav class="topbar">
     <a class="topbar-brand" th:href="@{/feed(userId=${userId})}">RevConnect</a>
     <div class="topbar-actions">
@@ -20,7 +19,6 @@
 
 <div class="layout">
 
-    <!-- LEFT SIDEBAR (nav) -->
     <aside class="sidebar">
         <div class="card">
             <nav class="nav-menu">
@@ -42,17 +40,19 @@
                 <a class="nav-item" th:href="@{/follow/following(userId=${userId})}">
                     <span class="nav-icon">➕</span> Following
                 </a>
+                <a class="nav-item" th:href="@{/mvc/connections(userId=${userId})}">
+                    <span class="nav-icon">🔗</span> Connections
+                </a>
             </nav>
         </div>
     </aside>
 
-    <!-- MAIN: Profile card + posts -->
     <main class="feed-column">
 
         <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
         <div class="alert alert-danger" th:if="${privateAccountMessage}" th:text="${privateAccountMessage}"></div>
 
-        <!-- Profile card -->
         <div class="card" th:if="${profile != null}">
             <div class="profile-cover"></div>
             <div class="profile-info-section">
@@ -97,17 +97,13 @@
                     </div>
                 </div>
 
-                <!-- Action buttons -->
                 <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-                    <!-- Own profile: edit button -->
-                    <a th:if="${isOwnProfile}"
-                       class="btn btn-outline btn-sm"
+
+                    <a th:if="${isOwnProfile}" class="btn btn-outline btn-sm"
                        th:href="@{/profile/edit(userId=${userId})}">✏️ Edit Profile</a>
-                    <a th:if="${isOwnProfile}"
-                       class="btn btn-primary btn-sm"
+                    <a th:if="${isOwnProfile}" class="btn btn-primary btn-sm"
                        th:href="@{/posts/create(userId=${userId})}">+ New Post</a>
 
-                    <!-- Other's profile: follow / unfollow -->
                     <form th:if="${!isOwnProfile and !isFollowing}"
                           th:action="@{/follow/{id}(id=${profileUserId})}" method="post">
                         <input type="hidden" name="userId" th:value="${userId}"/>
@@ -118,11 +114,43 @@
                         <input type="hidden" name="userId" th:value="${userId}"/>
                         <button type="submit" class="btn btn-outline btn-sm">Unfollow</button>
                     </form>
+
+                    <form th:if="${!isOwnProfile and connectionStatus == 'NONE'}"
+                          th:action="@{/mvc/connections/send}" method="post">
+                        <input type="hidden" name="senderId"   th:value="${userId}"/>
+                        <input type="hidden" name="receiverId" th:value="${profileUserId}"/>
+                        <button type="submit" class="btn btn-primary btn-sm">🤝 Connect</button>
+                    </form>
+
+                    <form th:if="${!isOwnProfile and connectionStatus == 'PENDING'}"
+                          th:action="@{/mvc/connections/remove}" method="post">
+                        <input type="hidden" name="userId"       th:value="${userId}"/>
+                        <input type="hidden" name="targetUserId" th:value="${profileUserId}"/>
+                        <button type="submit" class="btn btn-outline btn-sm">⏳ Withdraw Request</button>
+                    </form>
+
+                    <span th:if="${!isOwnProfile and connectionStatus == 'RECEIVED'}">
+                        <form th:action="@{/mvc/connections/accept/{id}(id=${connectionId})}" method="post" style="display:inline;">
+                            <input type="hidden" name="userId" th:value="${userId}"/>
+                            <button type="submit" class="btn btn-primary btn-sm">✅ Accept</button>
+                        </form>
+                        <form th:action="@{/mvc/connections/reject/{id}(id=${connectionId})}" method="post" style="display:inline;">
+                            <input type="hidden" name="userId" th:value="${userId}"/>
+                            <button type="submit" class="btn btn-outline btn-sm">✕ Reject</button>
+                        </form>
+                    </span>
+
+                    <form th:if="${!isOwnProfile and connectionStatus == 'ACCEPTED'}"
+                          th:action="@{/mvc/connections/remove}" method="post">
+                        <input type="hidden" name="userId"       th:value="${userId}"/>
+                        <input type="hidden" name="targetUserId" th:value="${profileUserId}"/>
+                        <button type="submit" class="btn btn-outline btn-sm">🔗 Connected · Remove</button>
+                    </form>
+
                 </div>
             </div>
         </div>
 
-        <!-- User's posts -->
         <div th:if="${posts == null or posts.isEmpty()}" class="card">
             <div class="empty-state">
                 <div class="icon">📝</div>
@@ -139,7 +167,6 @@
                     <div class="post-time"
                          th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'MMM d, yyyy · h:mm a') : ''}"></div>
                 </div>
-                <span class="pinned-badge" th:if="${false}">📌 Pinned</span>
             </div>
 
             <div class="post-body">
@@ -154,7 +181,6 @@
             </div>
 
             <div class="post-actions">
-                <!-- Like -->
                 <div class="like-btn-wrapper">
                     <input type="checkbox" class="like-checkbox" th:id="'like-chk-' + ${post.postId}"/>
                     <label class="like-label" th:for="'like-chk-' + ${post.postId}"
@@ -169,12 +195,10 @@
                     <input type="hidden" name="redirectTo" th:value="@{/profile(userId=${userId},targetUserId=${profileUserId})}"/>
                 </form>
 
-                <!-- View -->
                 <a class="action-btn" th:href="@{/posts/{id}(id=${post.postId}, userId=${userId})}">
                     💬 Comment
                 </a>
 
-                <!-- Pin/Unpin (own profile only) -->
                 <form th:if="${isOwnProfile}"
                       th:action="@{/posts/{id}/pin(id=${post.postId})}" method="post"
                       style="display:inline;">
@@ -188,7 +212,6 @@
                     <button type="submit" class="action-btn">📌 Unpin</button>
                 </form>
 
-                <!-- Delete (own profile only) -->
                 <form th:if="${isOwnProfile}"
                       th:action="@{/posts/{id}/delete(id=${post.postId})}" method="post"
                       style="display:inline;"
@@ -201,7 +224,6 @@
 
     </main>
 
-    <!-- RIGHT: Empty / suggestions -->
     <aside class="right-sidebar">
         <div class="card">
             <div class="card-body">

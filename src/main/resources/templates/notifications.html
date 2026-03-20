@@ -19,6 +19,36 @@
 <div style="max-width:680px;margin:24px auto;padding:0 20px;">
 
     <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger"  th:if="${errorMessage}"   th:text="${errorMessage}"></div>
+
+    <!-- Pending Connection Requests -->
+    <div class="card" th:if="${pendingRequests != null and !#lists.isEmpty(pendingRequests)}"
+         style="margin-bottom:16px;">
+        <div class="card-header">🤝 Connection Requests
+            <span class="notif-badge" th:text="${#lists.size(pendingRequests)}"></span>
+        </div>
+        <div class="card-body" style="padding:0;">
+            <div class="notification-item" th:each="req : ${pendingRequests}">
+                <div class="avatar-sm" style="background:var(--accent-light);color:var(--accent);">🤝</div>
+                <div class="notif-body" style="flex:1;">
+                    <div class="notif-msg"
+                         th:text="${req.sender.userName} + ' sent you a connection request'">Request</div>
+                    <div class="notif-time"
+                         th:text="${req.createdAt != null ? #temporals.format(req.createdAt, 'MMM d, h:mm a') : ''}"></div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <form th:action="@{/mvc/connections/accept/{id}(id=${req.connectionId})}" method="post">
+                        <input type="hidden" name="userId" th:value="${userId}"/>
+                        <button type="submit" class="btn btn-primary btn-sm">✅ Accept</button>
+                    </form>
+                    <form th:action="@{/mvc/connections/reject/{id}(id=${req.connectionId})}" method="post">
+                        <input type="hidden" name="userId" th:value="${userId}"/>
+                        <button type="submit" class="btn btn-outline btn-sm">✕ Reject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Header row -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -41,7 +71,6 @@
             <p>You have no notifications yet.</p>
         </div>
 
-        <!-- Notification list via th:each -->
         <div class="notification-item"
              th:each="notif : ${notifications}"
              th:classappend="${!notif.read} ? 'unread' : ''">
@@ -67,7 +96,6 @@
                 </div>
             </div>
 
-            <!-- Mark as read button -->
             <form th:if="${!notif.read}"
                   th:action="@{/notifications/{id}/read(id=${notif.notificationId})}"
                   method="post">

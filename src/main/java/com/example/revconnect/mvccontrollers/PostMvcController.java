@@ -5,13 +5,19 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.revconnect.dto.CommentResponse;
 import com.example.revconnect.dto.PostResponse;
 import com.example.revconnect.entity.Post;
 import com.example.revconnect.repository.LikeRepository;
+import com.example.revconnect.repository.UserRepository;
 import com.example.revconnect.service.CommentService;
 import com.example.revconnect.service.LikeService;
 import com.example.revconnect.service.PostService;
@@ -22,28 +28,38 @@ import com.example.revconnect.service.ShareService;
 @RequestMapping("/posts")
 public class PostMvcController {
 
-    @Autowired
     private PostService postService;
 
-    @Autowired
     private CommentService commentService;
 
-    @Autowired
     private LikeService likeService;
 
-    @Autowired
     private SavedPostService savedPostService;
 
-    @Autowired
     private ShareService shareService;
 
+    private LikeRepository likeRepository;   
+    
+    private UserRepository userRepository;
+    
+    public PostMvcController() {
+   	}
+    
     @Autowired
-    private LikeRepository likeRepository;
+    public PostMvcController(PostService thePostService, CommentService theCommentService, LikeService theLikeService,
+			SavedPostService theSavedPostService, ShareService theShareService, 
+			LikeRepository theLikeRepository, UserRepository theUserRepository) {
+		this.postService = thePostService;
+		this.commentService = theCommentService;
+		this.likeService = theLikeService;
+		this.savedPostService = theSavedPostService;
+		this.shareService = theShareService;
+		this.likeRepository = theLikeRepository;
+		this.userRepository = theUserRepository;
+	}
 
-    /**
-     * View a single post with comments and engagement metrics.
-     */
-    @GetMapping("/{postId}")
+
+	@GetMapping("/{postId}")
     public String viewPost(
             @PathVariable Long postId,
             @RequestParam(defaultValue = "1") Long userId,
@@ -65,22 +81,24 @@ public class PostMvcController {
         return "post-detail";
     }
 
-    /**
-     * Show create post form.
-     */
-    @GetMapping("/create")
-    public String showCreatePost(
-            @RequestParam(defaultValue = "1") Long userId,
-            Model model) {
 
-        model.addAttribute("post", new Post());
-        model.addAttribute("userId", userId);
-        return "create-post";
-    }
+	@GetMapping("/create")
+	public String showCreatePost(
+	        @RequestParam(defaultValue = "1") Long userId,
+	        Model model) {
 
-    /**
-     * Submit a new post.
-     */
+	    model.addAttribute("post", new Post());
+	    model.addAttribute("userId", userId);
+
+	    // pass accountType to template ✅
+	    userRepository.findById(userId).ifPresent(user ->
+	        model.addAttribute("accountType", user.getAccountType().name())
+	    );
+
+	    return "create-post";
+	}
+
+
     @PostMapping("/create")
     public String createPost(
             @RequestParam Long userId,
@@ -92,9 +110,6 @@ public class PostMvcController {
         return "redirect:/feed?userId=" + userId;
     }
 
-    /**
-     * Show edit post form.
-     */
     @GetMapping("/{postId}/edit")
     public String showEditPost(
             @PathVariable Long postId,
@@ -107,9 +122,7 @@ public class PostMvcController {
         return "edit-post";
     }
 
-    /**
-     * Submit edited post.
-     */
+
     @PostMapping("/{postId}/edit")
     public String editPost(
             @PathVariable Long postId,
@@ -122,9 +135,7 @@ public class PostMvcController {
         return "redirect:/feed?userId=" + userId;
     }
 
-    /**
-     * Delete a post.
-     */
+
     @PostMapping("/{postId}/delete")
     public String deletePost(
             @PathVariable Long postId,
@@ -136,9 +147,7 @@ public class PostMvcController {
         return "redirect:/feed?userId=" + userId;
     }
 
-    /**
-     * Like a post (form POST, redirects back to feed).
-     */
+
     @PostMapping("/{postId}/like")
     public String likePost(
             @PathVariable Long postId,
@@ -156,9 +165,6 @@ public class PostMvcController {
         return "redirect:" + redirect;
     }
 
-    /**
-     * Unlike a post.
-     */
     @PostMapping("/{postId}/unlike")
     public String unlikePost(
             @PathVariable Long postId,
@@ -176,9 +182,6 @@ public class PostMvcController {
         return "redirect:" + redirect;
     }
 
-    /**
-     * Add a comment to a post.
-     */
     @PostMapping("/{postId}/comment")
     public String addComment(
             @PathVariable Long postId,
@@ -189,10 +192,23 @@ public class PostMvcController {
         commentService.addComment(userId, postId, content);
         return "redirect:/posts/" + postId + "?userId=" + userId;
     }
+    
+    @PostMapping("/comments/{commentId}/reply")
+    public String replyToComment(
+            @PathVariable Long commentId,
+            @RequestParam Long userId,
+            @RequestParam Long postId,
+            @RequestParam String content,
+            RedirectAttributes redirectAttributes) {
+ 
+        try {
+            commentService.replyToComment(userId, commentId, content);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/posts/" + postId + "?userId=" + userId;
+    }
 
-    /**
-     * Delete a comment.
-     */
     @PostMapping("/comments/{commentId}/delete")
     public String deleteComment(
             @PathVariable Long commentId,
@@ -200,13 +216,15 @@ public class PostMvcController {
             @RequestParam Long postId,
             RedirectAttributes redirectAttributes) {
 
-        commentService.deleteComment(commentId, userId);
+    	try {
+            commentService.deleteComment(commentId, userId);
+            redirectAttributes.addFlashAttribute("successMessage", "Comment deleted.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "You are not authorized to delete this comment.");
+        }
         return "redirect:/posts/" + postId + "?userId=" + userId;
     }
 
-    /**
-     * Save a post.
-     */
     @PostMapping("/{postId}/save")
     public String savePost(
             @PathVariable Long postId,
@@ -223,9 +241,6 @@ public class PostMvcController {
         return "redirect:/feed?userId=" + userId;
     }
 
-    /**
-     * Show the share picker page — lists followers/following the user can send this post to.
-     */
     @GetMapping("/{postId}/share-sheet")
     public String showShareSheet(
             @PathVariable Long postId,
@@ -245,9 +260,6 @@ public class PostMvcController {
         return "share-sheet";
     }
 
-    /**
-     * Share to my own public feed (no specific recipient).
-     */
     @PostMapping("/{postId}/share")
     public String shareToFeed(
             @PathVariable Long postId,
@@ -266,9 +278,6 @@ public class PostMvcController {
         return "redirect:" + back;
     }
 
-    /**
-     * Share a post directly to a specific user — sends them a notification.
-     */
     @PostMapping("/{postId}/share-to/{recipientId}")
     public String shareToUser(
             @PathVariable Long postId,
@@ -289,9 +298,6 @@ public class PostMvcController {
         return "redirect:" + back;
     }
 
-    /**
-     * Pin a post.
-     */
     @PostMapping("/{postId}/pin")
     public String pinPost(
             @PathVariable Long postId,
@@ -302,9 +308,6 @@ public class PostMvcController {
         return "redirect:/profile?userId=" + userId;
     }
 
-    /**
-     * Unpin a post.
-     */
     @PostMapping("/{postId}/unpin")
     public String unpinPost(
             @PathVariable Long postId,
@@ -315,9 +318,6 @@ public class PostMvcController {
         return "redirect:/profile?userId=" + userId;
     }
 
-    /**
-     * Saved posts page.
-     */
     @GetMapping("/saved")
     public String savedPosts(
             @RequestParam(defaultValue = "1") Long userId,

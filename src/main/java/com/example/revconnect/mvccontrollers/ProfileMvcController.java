@@ -2,7 +2,10 @@ package com.example.revconnect.mvccontrollers;
 
 import com.example.revconnect.dto.PostResponse;
 import com.example.revconnect.dto.ProfileDTO;
+import com.example.revconnect.entity.Connection;
 import com.example.revconnect.entity.Profile;
+import com.example.revconnect.repository.ConnectionRepository;
+import com.example.revconnect.service.ConnectionService;
 import com.example.revconnect.service.FollowService;
 import com.example.revconnect.service.PostService;
 import com.example.revconnect.service.ProfileService;
@@ -26,6 +29,9 @@ public class ProfileMvcController {
 
     @Autowired
     private FollowService followService;
+
+    @Autowired
+    private ConnectionRepository connectionRepository;
 
     /**
      * View a user's profile with their posts.
@@ -58,12 +64,29 @@ public class ProfileMvcController {
 
         boolean isOwnProfile = userId.equals(profileUserId);
 
+        // Connection status
+        String connectionStatus = "NONE";
+        Long connectionId = null;
+        if (!isOwnProfile) {
+            Connection sentByMe = connectionRepository.findBySenderUserIdAndReceiverUserId(userId, profileUserId);
+            Connection sentByThem = connectionRepository.findBySenderUserIdAndReceiverUserId(profileUserId, userId);
+            if (sentByMe != null) {
+                connectionStatus = sentByMe.getStatus(); // PENDING or ACCEPTED
+                connectionId = sentByMe.getConnectionId();
+            } else if (sentByThem != null) {
+                connectionStatus = sentByThem.getStatus().equals("ACCEPTED") ? "ACCEPTED" : "RECEIVED";
+                connectionId = sentByThem.getConnectionId();
+            }
+        }
+
         model.addAttribute("profile", profile);
         model.addAttribute("posts", userPosts);
         model.addAttribute("userId", userId);
         model.addAttribute("profileUserId", profileUserId);
         model.addAttribute("isFollowing", isFollowing);
         model.addAttribute("isOwnProfile", isOwnProfile);
+        model.addAttribute("connectionStatus", connectionStatus);
+        model.addAttribute("connectionId", connectionId);
 
         return "profile";
     }

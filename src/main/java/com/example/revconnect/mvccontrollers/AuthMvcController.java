@@ -24,20 +24,14 @@ public class AuthMvcController {
 
     // Email validation regex
     private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
 
-    /**
-     * Show login page.
-     */
     @GetMapping({"/", "/login"})
     public String showLogin(Model model) {
         model.addAttribute("loginRequest", new User());
         return "login";
     }
 
-    /**
-     * Process login form.
-     */
     @PostMapping("/login")
     public String processLogin(
             @RequestParam String email,

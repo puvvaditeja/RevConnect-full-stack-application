@@ -1,21 +1,14 @@
 package com.example.revconnect.config;
 
-import com.example.revconnect.security.JwtAuthenticationFilter;
+//import com.example.revconnect.security.JwtAuthenticationFilter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import org.springframework.http.HttpMethod;
 
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -23,8 +16,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthenticationFilter jwtFilter;
+//    private JwtAuthenticationFilter jwtFilter;
+//    
+//    public SecurityConfig(JwtAuthenticationFilter theJwtAuthenticationFilter) {
+//    	
+//    	this.jwtFilter = theJwtAuthenticationFilter;
+//    }
 
     // Password encoder
     @Bean
@@ -40,9 +37,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .anyRequest().permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")                  // trigger on /logout
+                .logoutSuccessUrl("/login")            // redirect to /login (no ?logout) ✅
+                .invalidateHttpSession(true)           // clear session
+                .deleteCookies("JSESSIONID", "jwt")    // clear cookies
             );
 
         return http.build();
-    
     }
 }

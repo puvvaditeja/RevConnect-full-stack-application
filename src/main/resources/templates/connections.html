@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Connections — RevConnect</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<nav class="topbar">
+    <a class="topbar-brand" th:href="@{/feed(userId=${userId})}">RevConnect</a>
+    <div class="topbar-actions">
+        <a class="topbar-btn" th:href="@{/feed(userId=${userId})}">🏠 Feed</a>
+        <a class="topbar-btn" th:href="@{/notifications(userId=${userId})}">🔔</a>
+        <a class="topbar-btn" th:href="@{/logout}">Logout</a>
+    </div>
+</nav>
+
+<div style="max-width:680px;margin:24px auto;padding:0 20px;">
+
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger"  th:if="${errorMessage}"   th:text="${errorMessage}"></div>
+
+    <!-- My Connections -->
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">🔗 My Connections
+            <span class="notif-badge" th:text="${#lists.size(connections)}"></span>
+        </div>
+        <div class="card-body" style="padding:0;">
+            <div th:if="${connections == null or #lists.isEmpty(connections)}"
+                 class="empty-state" style="padding:24px;">
+                <p>No connections yet. Visit someone's profile and connect!</p>
+            </div>
+            <div class="notification-item" th:each="conn : ${connections}">
+                <div class="avatar-sm"
+                     th:text="${conn.sender.userName.substring(0,1)}">U</div>
+                <div class="notif-body" style="flex:1;">
+                    <div class="notif-msg" th:text="${conn.sender.userName}">Username</div>
+                    <div class="notif-time">Connected</div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <a class="btn btn-outline btn-sm"
+                       th:href="@{/profile(userId=${userId}, targetUserId=${conn.sender.userId})}">View Profile</a>
+                    <form th:action="@{/mvc/connections/remove}" method="post">
+                        <input type="hidden" name="userId"       th:value="${userId}"/>
+                        <input type="hidden" name="targetUserId" th:value="${conn.sender.userId}"/>
+                        <button type="submit" class="btn btn-outline btn-sm"
+                                style="color:var(--danger);">Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests (received) -->
+    <div class="card" style="margin-bottom:16px;"
+         th:if="${pendingRequests != null and !#lists.isEmpty(pendingRequests)}">
+        <div class="card-header">🤝 Pending Requests
+            <span class="notif-badge" th:text="${#lists.size(pendingRequests)}"></span>
+        </div>
+        <div class="card-body" style="padding:0;">
+            <div class="notification-item" th:each="req : ${pendingRequests}">
+                <div class="avatar-sm"
+                     th:text="${req.sender.userName.substring(0,1)}">U</div>
+                <div class="notif-body" style="flex:1;">
+                    <div class="notif-msg" th:text="${req.sender.userName}">Username</div>
+                    <div class="notif-time"
+                         th:text="${req.createdAt != null ? #temporals.format(req.createdAt, 'MMM d, h:mm a') : ''}"></div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <form th:action="@{/mvc/connections/accept/{id}(id=${req.connectionId})}" method="post">
+                        <input type="hidden" name="userId" th:value="${userId}"/>
+                        <button type="submit" class="btn btn-primary btn-sm">✅ Accept</button>
+                    </form>
+                    <form th:action="@{/mvc/connections/reject/{id}(id=${req.connectionId})}" method="post">
+                        <input type="hidden" name="userId" th:value="${userId}"/>
+                        <button type="submit" class="btn btn-outline btn-sm">✕ Reject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sent Requests -->
+    <div class="card"
+         th:if="${sentRequests != null and !#lists.isEmpty(sentRequests)}">
+        <div class="card-header">⏳ Sent Requests
+            <span class="notif-badge" th:text="${#lists.size(sentRequests)}"></span>
+        </div>
+        <div class="card-body" style="padding:0;">
+            <div class="notification-item" th:each="req : ${sentRequests}">
+                <div class="avatar-sm"
+                     th:text="${req.receiver.userName.substring(0,1)}">U</div>
+                <div class="notif-body" style="flex:1;">
+                    <div class="notif-msg" th:text="${req.receiver.userName}">Username</div>
+                    <div class="notif-time">Waiting for response</div>
+                </div>
+                <form th:action="@{/mvc/connections/remove}" method="post">
+                    <input type="hidden" name="userId"       th:value="${userId}"/>
+                    <input type="hidden" name="targetUserId" th:value="${req.receiver.userId}"/>
+                    <button type="submit" class="btn btn-outline btn-sm">Withdraw</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -3,7 +3,6 @@ package com.example.revconnect.controller;
 import com.example.revconnect.dto.CommentResponse;
 import com.example.revconnect.entity.Comment;
 import com.example.revconnect.service.CommentService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,8 +11,12 @@ import java.util.List;
 @RequestMapping("/api/comments")
 public class CommentController {
 
-    @Autowired
     private CommentService commentService;
+    
+    public CommentController(CommentService theCommentService) {
+    	
+    	this.commentService = theCommentService;
+    }
 
     // Add Comment
     @PostMapping("/user/{userId}/post/{postId}")
@@ -27,6 +30,7 @@ public class CommentController {
     // Get Comments of Post
     @GetMapping("/post/{postId}")
     public List<CommentResponse> getComments(@PathVariable Long postId) {
+    	
         return commentService.getCommentsByPost(postId);
     }
     
@@ -35,8 +39,10 @@ public class CommentController {
                                 @PathVariable Long commentId) {
 
         commentService.deleteComment(commentId, userId);
+     
         return "Comment deleted successfully";
     }
+    
     @PostMapping("/reply/{commentId}")
     public Comment replyToComment(@PathVariable Long commentId,
                                   @RequestParam Long userId,

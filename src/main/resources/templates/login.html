@@ -1,159 +1,147 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
-
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
 <title>Login — RevConnect</title>
-
 <link rel="stylesheet" th:href="@{/css/style.css}"/>
-
+<style>
+.password-wrapper { position: relative; }
+.eye-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+}
+.field-error {
+    color: #e53935;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+</style>
 </head>
-
 <body class="login-page">
 
 <div class="login-wrapper">
 
-    <!-- LEFT SIDE -->
-
     <div class="login-left">
-
         <div class="brand-box">
-
             <h1>RevConnect</h1>
-
-            <p>
-                Connect with professionals,
-                share ideas, and grow your network.
-            </p>
-
+            <p>Connect with professionals, share ideas, and grow your network.</p>
             <img th:src="@{/images/Screenshot 2026-03-11 134136.png}"
-                 alt="Networking Illustration"
-                 class="login-image"/>
-
+                 alt="Networking Illustration" class="login-image"/>
         </div>
-
     </div>
 
-
-
-    <!-- RIGHT SIDE -->
-
     <div class="login-right">
-
         <div class="auth-card">
 
             <div class="auth-logo">RevConnect</div>
+            <p class="auth-tagline">Connect, Share, Grow.</p>
 
-            <p class="auth-tagline">
-                Connect, Share, Grow.
-            </p>
+            <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+            <div class="alert alert-danger"  th:if="${errorMessage}"   th:text="${errorMessage}"></div>
 
-
-            <!-- Flash messages -->
-
-            <div class="alert alert-success"
-                 th:if="${successMessage}"
-                 th:text="${successMessage}">
-            </div>
-
-            <div class="alert alert-danger"
-                 th:if="${errorMessage}"
-                 th:text="${errorMessage}">
-            </div>
-
-
-
-            <!-- LOGIN FORM -->
-
-            <form th:action="@{/login}" method="post">
+            <form th:action="@{/login}" method="post" onsubmit="return validateLogin()">
 
                 <div class="form-group">
-
-                    <label class="form-label" for="email">
-                        Email address
-                    </label>
-
+                    <label class="form-label" for="email">Email address</label>
                     <input class="form-control"
-                           type="email"
+                           type="text"
                            id="email"
                            name="email"
-                           placeholder="you@example.com"
+                           placeholder="you@gmail.com"
                            autocomplete="email"
-                           required
-                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                           title="Please enter a valid email address"/>
-
+                           required/>
+                    <div class="field-error" id="emailError">
+                        Enter a valid email — e.g. you@gmail.com, you@yahoo.com, you@outlook.com
+                    </div>
                 </div>
-
-
 
                 <div class="form-group">
-
-                    <label class="form-label" for="password">
-                        Password
-                    </label>
-
-                    <input class="form-control"
-                           type="password"
-                           id="password"
-                           name="password"
-                           placeholder="••••••••"
-                           autocomplete="current-password"
-                           required/>
-
+                    <label class="form-label" for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input class="form-control"
+                               type="password"
+                               id="password"
+                               name="password"
+                               placeholder="••••••••"
+                               autocomplete="current-password"
+                               required/>
+                        <button type="button" class="eye-btn" onclick="togglePassword('password', this)">👁</button>
+                    </div>
+                    <div class="field-error" id="passwordError">
+                        Min 8 characters with uppercase, lowercase, digit and special character (@$!%*?&)
+                    </div>
                 </div>
 
-
-
-                <button class="btn btn-primary"
-                        type="submit"
-                        style="width:100%;margin-top:8px;">
-
+                <button class="btn btn-primary" type="submit" style="width:100%;margin-top:8px;">
                     Log In
-
                 </button>
 
             </form>
 
-
-
-            <div class="auth-divider">
-                or
-            </div>
-
-
+            <div class="auth-divider">or</div>
 
             <div style="text-align:center;font-size:14px;color:var(--text-secondary);">
-
                 Don't have an account?
-
-                <a th:href="@{/register}" style="font-weight:600;">
-                    Sign Up
-                </a>
-
+                <a th:href="@{/register}" style="font-weight:600;">Sign Up</a>
             </div>
 
-
-
             <div style="text-align:center;margin-top:10px;font-size:13px;">
-
-                <a th:href="@{/forgot-password}" style="color:var(--text-muted);">
-
-                    Forgot password?
-
-                </a>
-
+                <a th:href="@{/forgot-password}" style="color:var(--text-muted);">Forgot password?</a>
             </div>
 
         </div>
-
     </div>
 
 </div>
 
-</body>
+<script>
+function togglePassword(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+    }
+}
 
+function validateLogin() {
+    let valid = true;
+
+    const email = document.getElementById('email').value.trim();
+    const emailPattern = /^[a-zA-Z0-9._%+\-]+@(gmail|yahoo|outlook|hotmail|icloud|revature|live|protonmail)\.[a-zA-Z]{2,}$/i;
+    const emailError = document.getElementById('emailError');
+    if (!emailPattern.test(email)) {
+        emailError.style.display = 'block';
+        valid = false;
+    } else {
+        emailError.style.display = 'none';
+    }
+
+    const password = document.getElementById('password').value;
+    const passPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passError = document.getElementById('passwordError');
+    if (!passPattern.test(password)) {
+        passError.style.display = 'block';
+        valid = false;
+    } else {
+        passError.style.display = 'none';
+    }
+
+    return valid;
+}
+</script>
+
+</body>
 </html>

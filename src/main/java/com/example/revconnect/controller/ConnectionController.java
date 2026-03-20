@@ -2,7 +2,6 @@ package com.example.revconnect.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,10 +18,13 @@ import com.example.revconnect.service.ConnectionService;
 @RequestMapping("/connections")
 public class ConnectionController {
 
-    @Autowired
     private ConnectionService connectionService;
 
-    @PostMapping("/send")
+    public ConnectionController(ConnectionService theConnectionService) {
+		this.connectionService = theConnectionService;
+	}
+
+	@PostMapping("/send")
     public Connection sendRequest(@RequestParam Long senderId,
                                   @RequestParam Long receiverId) {
 
@@ -46,19 +48,23 @@ public class ConnectionController {
 
         return connectionService.getConnections(userId);
     }
+    
     @GetMapping("/pending/{userId}")
     public List<Connection> getPendingRequests(@PathVariable Long userId) {
 
         return connectionService.getPendingRequests(userId);
     }
+    
     @DeleteMapping("/remove/{userId}/{connectionUserId}")
     public String removeConnection(@PathVariable Long userId,
                                    @PathVariable Long connectionUserId) {
 
         return connectionService.removeConnection(userId, connectionUserId);
     }
+    
     @GetMapping("/sent/{userId}")
     public List<Connection> getSentRequests(@PathVariable Long userId) {
+    	
         return connectionService.getSentRequests(userId);
     }
 }

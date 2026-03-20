@@ -1,6 +1,7 @@
 package com.example.revconnect.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class CommentResponse {
 
@@ -10,8 +11,20 @@ public class CommentResponse {
     private Long postId;
     private String content;
     private LocalDateTime createdAt;
-	public String getUserName() { return userName; }
-	public void setUserName(String userName) { this.userName = userName; }
+    private List<CommentResponse> replies;
+    
+	public List<CommentResponse> getReplies() {
+		return replies;
+	}
+	public void setReplies(List<CommentResponse> replies) {
+		this.replies = replies;
+	}
+	public String getUserName() { 
+		return userName; 
+	}
+	public void setUserName(String userName) { 
+		this.userName = userName; 
+	}
 	public Long getCommentId() {
 		return commentId;
 	}

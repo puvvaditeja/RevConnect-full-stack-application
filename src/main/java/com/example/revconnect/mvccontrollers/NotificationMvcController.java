@@ -1,6 +1,8 @@
 package com.example.revconnect.mvccontrollers;
 
 import com.example.revconnect.dto.NotificationResponse;
+import com.example.revconnect.entity.Connection;
+import com.example.revconnect.service.ConnectionService;
 import com.example.revconnect.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,6 +19,9 @@ public class NotificationMvcController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private ConnectionService connectionService;
+
     /**
      * View all notifications for the current user.
      */
@@ -27,9 +32,11 @@ public class NotificationMvcController {
 
         List<NotificationResponse> notifications = notificationService.getUserNotifications(userId);
         long unreadCount = notificationService.getUnreadCount(userId);
+        List<Connection> pendingRequests = connectionService.getPendingRequests(userId);
 
         model.addAttribute("notifications", notifications);
         model.addAttribute("unreadCount", unreadCount);
+        model.addAttribute("pendingRequests", pendingRequests);
         model.addAttribute("userId", userId);
 
         return "notifications";

@@ -21,7 +21,15 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId;
 
-    @ManyToOne
+    public List<Comment> getReplies() {
+		return replies;
+	}
+
+	public void setReplies(List<Comment> replies) {
+		this.replies = replies;
+	}
+
+	@ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
     
@@ -31,6 +39,7 @@ public class Comment {
     
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
     private List<Comment> replies;
+    
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;

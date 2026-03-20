@@ -26,10 +26,10 @@ public class Post {
     @Column
     private Boolean pinned = false;
     
-    @Column
+    @Column(length = 500)
     private String productName;
 
-    @Column
+    @Column(length = 1000)
     private String productLink;
     
     @Column
@@ -61,10 +61,10 @@ public class Post {
 
     private LocalDateTime createdAt;
     
-    @Column
+    @Column(length = 500)
     private String ctaLabel;   // button text
 
-    @Column
+    @Column(length = 1000)
     private String ctaLink;    // button URL
 
     public Post() {}

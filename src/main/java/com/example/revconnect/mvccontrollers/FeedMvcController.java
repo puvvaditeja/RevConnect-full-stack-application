@@ -1,5 +1,17 @@
 package com.example.revconnect.mvccontrollers;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.example.revconnect.dto.PostResponse;
 import com.example.revconnect.dto.ProfileDTO;
 import com.example.revconnect.entity.User;
@@ -8,15 +20,6 @@ import com.example.revconnect.service.FollowService;
 import com.example.revconnect.service.NotificationService;
 import com.example.revconnect.service.PostService;
 import com.example.revconnect.service.ProfileService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/feed")
